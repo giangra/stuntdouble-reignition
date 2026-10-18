@@ -92,8 +92,9 @@ It names the `sub_XXXXXXXX` and the line in `generated/default/*.cpp`; the
 - [x] First run: boots and plays the attract-mode Bink movie with the Xenos
       GPU plugin (D3D12). Needs `config.gpu_plugin = "xenos"` and
       `GPU_PLUGINS xenos`, otherwise the screen stays black.
-- [ ] Main menu reached with a controller
-- [ ] In-game: first stunt loads
+- [x] Main menu, career and quick play reached with a controller
+- [x] Races load and play; saving works
+- [x] Runs on stock ReXGlue v0.10.0 plus our two patches
 
 ## Open issues
 
