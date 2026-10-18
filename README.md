@@ -56,6 +56,12 @@ need your own legally dumped copy of the Xbox 360 disc.
 | `docs/NOTES.md` | Findings about the game and the state of the port |
 | `tools/` | Analysis helpers |
 
+## License
+
+MIT for the code in this repository; the patches in `patches/sdk/` follow
+ReXGlue's BSD 3-Clause license. See [LICENSE](LICENSE). The game itself is not
+covered and is never included.
+
 ## Credits
 
 - [ReXGlue SDK](https://github.com/rexglue/rexglue-sdk), built on
