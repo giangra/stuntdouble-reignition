@@ -1,0 +1,47 @@
+diff --git a/include/rex/ppc/context.h b/include/rex/ppc/context.h
+index 0ede542..84677ec 100644
+--- a/include/rex/ppc/context.h
++++ b/include/rex/ppc/context.h
+@@ -171,33 +171,34 @@ struct FPSCRRegister {
+     return HostToGuest[(csr & RoundMaskVal) >> RoundShift];
+   }
+ 
++  // The writers below start from the live register, not the cached csr: a
++  // context whose csr was never loaded holds 0, and writing that back would
++  // unmask every host FP exception (a vmaddfp then dies with
++  // STATUS_FLOAT_INEXACT_RESULT).
+   inline void storeFromGuest(uint32_t value) noexcept {
+-    csr &= ~RoundMaskVal;
+-    csr |= Platform::GuestToHost[value & kRoundMask];
++    csr = (getcsr() & ~RoundMaskVal) | Platform::GuestToHost[value & kRoundMask];
+     setcsr(csr);
+   }
+ 
+   inline void enableFlushModeUnconditional() noexcept {
+-    csr |= FlushMask;
++    csr = getcsr() | FlushMask;
+     setcsr(csr);
+   }
+ 
+   inline void disableFlushModeUnconditional() noexcept {
+-    csr &= ~FlushMask;
++    csr = getcsr() & ~FlushMask;
+     setcsr(csr);
+   }
+ 
+   inline void enableFlushMode() noexcept {
+     if ((csr & FlushMask) != FlushMask) [[unlikely]] {
+-      csr |= FlushMask;
+-      setcsr(csr);
++      enableFlushModeUnconditional();
+     }
+   }
+ 
+   inline void disableFlushMode() noexcept {
+     if ((csr & FlushMask) != 0) [[unlikely]] {
+-      csr &= ~FlushMask;
+-      setcsr(csr);
++      disableFlushModeUnconditional();
+     }
+   }
+ 

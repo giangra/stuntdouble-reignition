@@ -1,0 +1,40 @@
+# Build output
+/out/
+*.exe
+*.dll
+*.pdb
+*.ilk
+*.exp
+*.lib
+
+# Codegen output: recompiled game code, never committed
+/generated/*
+!/generated/rexglue.cmake
+!/generated/.gitkeep
+
+# ReXGlue SDK, cloned and patched by setup.ps1
+/thirdparty/rexglue-sdk/
+
+# Game files: your own dump, never committed
+/game
+*.iso
+*.xiso
+*.xex
+
+# Logs and scratch output
+*.log
+codegen_out.txt
+/config/
+
+# Tool caches
+__pycache__/
+*.pyc
+
+# Editors and OS
+.vs/
+.vscode/
+.idea/
+*.user
+Thumbs.db
+Desktop.ini
+.DS_Store

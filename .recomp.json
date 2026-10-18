@@ -1,0 +1,8 @@
+{
+  "$schema": "https://recomp.fyi/schema/v1.json",
+  "game": "Stuntman: Ignition",
+  "system": "Xbox 360",
+  "type": "recomp",
+  "toolchain": "ReXGlue",
+  "status": "in-development"
+}
