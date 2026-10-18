@@ -20,13 +20,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
----
-
-This license covers the code in this repository only. It does not cover:
-
-- Stuntman: Ignition, its executable or any of its assets, which belong to
-  their respective owners and are never included here. You need your own
-  copy of the game.
-- The ReXGlue SDK (BSD 3-Clause License, see its LICENSE file), which
-  setup.ps1 downloads separately. The files in patches/sdk/ modify the SDK
-  and are provided under the same BSD 3-Clause terms as the SDK.

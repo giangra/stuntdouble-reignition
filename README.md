@@ -58,9 +58,12 @@ need your own legally dumped copy of the Xbox 360 disc.
 
 ## License
 
-MIT for the code in this repository; the patches in `patches/sdk/` follow
-ReXGlue's BSD 3-Clause license. See [LICENSE](LICENSE). The game itself is not
-covered and is never included.
+The code in this repository is under the [MIT License](LICENSE), except the
+patches in `patches/sdk/`: they modify the ReXGlue SDK and follow its BSD
+3-Clause license.
+
+Neither covers Stuntman: Ignition. Its executable and assets belong to their
+respective owners and are never included here; you need your own copy.
 
 ## Credits
 
