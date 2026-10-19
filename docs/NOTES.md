@@ -116,6 +116,16 @@ It names the `sub_XXXXXXXX` and the line in `generated/default/*.cpp`; the
       00000001/Save Data/{CareerData,replays,ghosts,Arenas,...}` plus
       `Headers/00000001/Save Data.header`. Deleting the whole `545107F4`
       folder gives a clean start: the game recreates it on boot.
+- [x] Installer: the launcher exe in install mode (no stuntman.exe next to
+      it). Checks the ISO (XDVDFS reader in launcher/XisoReader.cs, title
+      ID from the XEX2 execution info header), installs VS 2026 Build Tools
+      if no VS has VC tools + Clang + CMake, gets MinGit if Git is missing,
+      clones this repo at v<version>, extracts the ISO, runs
+      scripts/build_release.ps1. Fresh checkouts need codegen, then a second
+      configure: sources.cmake only exists after codegen. Full install from
+      scratch on the dev PC (VS and Git present): about 9 minutes.
+      Test with STUNTMAN_SOURCE=<local repo> STUNTMAN_SOURCE_REF=<branch>
+      and `--iso <file> --dir <folder> --auto`.
 - [ ] True ultrawide: patch the projection aspect and the 2D UI layout
 - [x] 60 FPS (cvar `target_fps`, launcher "Frame rate"). The 30 FPS cap is
       D3D's presentation interval: render state at device+13572 (setters

@@ -54,6 +54,58 @@ public static class L
         _ => folder,
     };
 
+    // ---- Installer ----
+    public static string Install => T("INSTALL", "INSTALLA");
+    public static string Installing => T("INSTALLING…", "INSTALLAZIONE…");
+    public static string InstallTitle => T("INSTALLATION", "INSTALLAZIONE");
+    public static string InstallIntro => T(
+        "The game is built on your PC from your own copy of the disc. Nothing of the game is downloaded.",
+        "Il gioco viene compilato sul tuo PC a partire dalla tua copia del disco. Del gioco non viene scaricato niente.");
+    public static string IsoLabel => T("Disc image (ISO)", "Immagine del disco (ISO)");
+    public static string IsoPick => T("Choose the Stuntman: Ignition ISO…", "Scegli la ISO di Stuntman: Ignition…");
+    public static string FolderLabel => T("Install folder", "Cartella di installazione");
+    public static string Browse => T("Browse…", "Sfoglia…");
+    public static string KeepBuild => T("Keep build files", "Mantieni file di compilazione");
+    public static string InstallNeeds => T(
+        "Keeping the build files takes about 3 GB more and makes updates faster. Needs about 12 GB free. If missing, the free Microsoft Visual Studio Build Tools (about 6 GB, asks for administrator rights) and a portable Git are installed. The first install takes 30–60 minutes.",
+        "Mantenere i file di compilazione occupa circa 3 GB in più e rende gli aggiornamenti più rapidi. Servono circa 12 GB liberi. Se mancano, vengono installati i Visual Studio Build Tools di Microsoft, gratuiti (circa 6 GB, chiedono i permessi di amministratore), e una copia portatile di Git. La prima installazione richiede 30–60 minuti.");
+    public static string IsoOk => T("Stuntman: Ignition disc found.", "Disco di Stuntman: Ignition riconosciuto.");
+    public static string IsoWrong => T("This is not a Stuntman: Ignition Xbox 360 disc image ({0}).",
+        "Questa non è un'immagine del disco Xbox 360 di Stuntman: Ignition ({0}).");
+    public static string NoSpace => T("Not enough space on {0}: about {1} GB are needed.",
+        "Spazio insufficiente su {0}: servono circa {1} GB.");
+    public static string StepCheckIso => T("Check the disc image", "Verifica dell'immagine del disco");
+    public static string StepTools => T("Microsoft build tools", "Strumenti di compilazione Microsoft");
+    public static string StepGit => T("Git", "Git");
+    public static string StepSource => T("Download the port's source", "Download dei sorgenti del port");
+    public static string StepExtract => T("Extract the disc", "Estrazione del disco");
+    public static string StepBuild => T("Generate and compile the game", "Generazione e compilazione del gioco");
+    public static string StepFinish => T("Shortcut and cleanup", "Collegamento e pulizia");
+    public static string DownloadingBuildTools => T("Downloading the Build Tools installer…", "Download del programma di installazione dei Build Tools…");
+    public static string InstallingBuildTools => T("Installing the Build Tools (see the Visual Studio Installer window)…",
+        "Installazione dei Build Tools (vedi la finestra di Visual Studio Installer)…");
+    public static string BuildToolsFailed => T("The Visual Studio Build Tools could not be installed.",
+        "Non è stato possibile installare i Visual Studio Build Tools.");
+    public static string BuildPreparing => T("Preparing…", "Preparazione…");
+    public static string BuildSdk => T("Downloading and building the ReXGlue SDK…", "Download e compilazione dell'SDK ReXGlue…");
+    public static string BuildCodegen => T("Translating the game's code to C++…", "Traduzione del codice del gioco in C++…");
+    public static string BuildCompile => T("Compiling…", "Compilazione…");
+    public static string BuildCopy => T("Copying the game…", "Copia del gioco…");
+    public static string BuildFailed => T("The build did not produce the game.", "La compilazione non ha prodotto il gioco.");
+    public static string StepFailed => T("{0} failed (code {1}).", "{0} non riuscito (codice {1}).");
+    public static string InstallDone => T("Installed. A \"Stuntman Ignition\" shortcut is on your desktop.",
+        "Installato. Sul desktop trovi il collegamento \"Stuntman Ignition\".");
+    public static string InstallFailed => T("Installation failed: {0} Press Install to retry; finished steps are kept. Log: {1}",
+        "Installazione non riuscita: {0} Premi Installa per riprovare: i passi già fatti vengono mantenuti. Log: {1}");
+    public static string ShowLog => T("Show log", "Mostra log");
+    public static string ConfirmCancelInstall => T("Stop the installation? You can resume it later.",
+        "Interrompere l'installazione? Potrai riprenderla più tardi.");
+
+    public static string Uninstall => T("Uninstall", "Disinstalla");
+    public static string ConfirmUninstall => T(
+        "Remove the game from {0} and its shortcuts? Saves and achievements in Documents\\stuntman are kept.",
+        "Rimuovere il gioco da {0} e i suoi collegamenti? Salvataggi e obiettivi in Documenti\\stuntman restano.");
+
     public static string Yes => T("Yes", "Sì");
     public static string No => T("Cancel", "Annulla");
     public static string ConfirmDeleteSaves => T(

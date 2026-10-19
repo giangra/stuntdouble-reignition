@@ -144,7 +144,73 @@
         <Button Style="{StaticResource WindowButton}" Content="&#xE8BB;" Click="OnClose" />
       </StackPanel>
 
-      <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="40,8,40,18">
+      <!-- Install mode: shown when the game isn't next to the launcher -->
+      <Grid x:Name="InstallPanel" Grid.Row="1" Grid.RowSpan="3" Margin="40,8,40,24" Visibility="Collapsed">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <StackPanel x:Name="InstallForm">
+          <TextBlock Text="{x:Static local:L.InstallTitle}" FontFamily="{StaticResource UiFont}" FontSize="13"
+                     FontWeight="Bold" Foreground="{StaticResource AccentBrush}" Margin="0,8,0,6" />
+          <TextBlock Text="{x:Static local:L.InstallIntro}" TextWrapping="Wrap" FontFamily="{StaticResource UiFont}"
+                     FontSize="14" Foreground="{StaticResource TextBrush}" Margin="0,0,0,16" />
+
+          <TextBlock Text="{x:Static local:L.IsoLabel}" FontFamily="{StaticResource UiFont}" FontSize="13"
+                     Foreground="{StaticResource DimTextBrush}" Margin="0,0,0,4" />
+          <Grid Margin="0,0,0,4">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Border Background="{StaticResource RowActiveBrush}" Padding="12,8">
+              <TextBlock x:Name="IsoPath" Text="{x:Static local:L.IsoPick}" TextTrimming="CharacterEllipsis"
+                         FontFamily="{StaticResource UiFont}" FontSize="14" Foreground="{StaticResource DimTextBrush}" />
+            </Border>
+            <Button x:Name="IsoBrowse" Grid.Column="1" Style="{StaticResource FlatButton}"
+                    Content="{x:Static local:L.Browse}" Click="OnPickIso" />
+          </Grid>
+          <TextBlock x:Name="IsoStatus" FontFamily="{StaticResource UiFont}" FontSize="12" MinHeight="16"
+                     Margin="2,0,0,10" />
+
+          <TextBlock Text="{x:Static local:L.FolderLabel}" FontFamily="{StaticResource UiFont}" FontSize="13"
+                     Foreground="{StaticResource DimTextBrush}" Margin="0,0,0,4" />
+          <Grid Margin="0,0,0,12">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Border Background="{StaticResource RowActiveBrush}" Padding="12,8">
+              <TextBlock x:Name="InstallDirText" TextTrimming="CharacterEllipsis" FontFamily="{StaticResource UiFont}"
+                         FontSize="14" Foreground="{StaticResource TextBrush}" />
+            </Border>
+            <Button x:Name="DirBrowse" Grid.Column="1" Style="{StaticResource FlatButton}"
+                    Content="{x:Static local:L.Browse}" Click="OnPickDir" />
+          </Grid>
+
+          <StackPanel x:Name="KeepBuildHost" />
+          <TextBlock Text="{x:Static local:L.InstallNeeds}" TextWrapping="Wrap" FontFamily="{StaticResource UiFont}"
+                     FontSize="12" LineHeight="17" Foreground="{StaticResource DimTextBrush}" Margin="0,6,0,0" />
+        </StackPanel>
+
+        <!-- Progress: one row per step, plus the log -->
+        <Grid x:Name="InstallProgressPanel" Grid.Row="0" Grid.RowSpan="2" Visibility="Collapsed">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+          </Grid.RowDefinitions>
+          <StackPanel x:Name="InstallSteps" Margin="0,8,0,8" />
+          <TextBox x:Name="InstallLog" Grid.Row="1" Visibility="Collapsed" IsReadOnly="True"
+                   VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" TextWrapping="NoWrap"
+                   Background="{StaticResource WindowBrush}" Foreground="{StaticResource DimTextBrush}"
+                   BorderThickness="0" FontFamily="Cascadia Mono, Consolas" FontSize="11" Padding="8" />
+          <Button x:Name="ShowLogButton" Grid.Row="2" HorizontalAlignment="Left" Margin="0,8,0,0"
+                  Style="{StaticResource SmallButton}" Content="{x:Static local:L.ShowLog}" Click="OnShowLog" />
+        </Grid>
+      </Grid>
+
+      <StackPanel x:Name="TabBar" Grid.Row="1" Orientation="Horizontal" Margin="40,8,40,18">
         <RadioButton x:Name="TabVideo" Style="{StaticResource TabButton}" Content="{x:Static local:L.TabVideo}"
                      GroupName="Tabs" IsChecked="True" Checked="OnTab" />
         <RadioButton x:Name="TabGame" Style="{StaticResource TabButton}" Content="{x:Static local:L.TabGame}"

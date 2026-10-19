@@ -7,16 +7,36 @@ compiled natively: no emulator, no JIT.
 
 > **Status: early development.** Menus, career and races play; expect bugs.
 
-This repository contains **no game files** and no recompiled game code. You
-need your own legally dumped copy of the Xbox 360 disc.
+This repository contains **no game files** and no recompiled game code, and
+neither do its releases. You need your own legally dumped copy of the Xbox
+360 disc: the game is built on your PC from it.
 
-## Requirements
+## Installing
+
+1. Download `StuntmanSetup-<version>.exe` from
+   [Releases](https://github.com/giangra/stuntdouble-reignition/releases)
+   and run it.
+2. Pick your Stuntman: Ignition ISO and an install folder (default
+   `C:\Games\StuntmanIgnition`), then press **Install**.
+3. When it's done, start the game from the **Stuntman Ignition** shortcut on
+   the desktop: it opens the launcher, where you set graphics, language and
+   frame rate, then press **Play**.
+
+The installer checks that the ISO is Stuntman: Ignition, extracts it, and
+gets what the build needs if it is missing: the free Microsoft Visual Studio
+Build Tools (about 6 GB, asks for administrator rights) and a portable Git.
+Then it downloads this project's source and the ReXGlue SDK, translates the
+game's code to C++ and compiles it. Count about 12 GB of free space and
+30–60 minutes the first time. If it stops, run it again: finished steps are
+kept. Its log is `install.log` in the install folder.
+
+## Requirements (building by hand)
 
 - Windows 10/11 x64
 - Visual Studio 2022 or 2026 with *Desktop development with C++*, the
   Windows SDK, *C++ Clang Compiler for Windows* and *C++ CMake tools*
   (provides Clang, CMake and Ninja)
-- Git, Python 3, PowerShell 7
+- Git, PowerShell
 - .NET 10 SDK, for the launcher (optional: without it only the game is built)
 - A GPU with Direct3D 12 support
 - Your own ISO of Stuntman: Ignition for Xbox 360
@@ -79,6 +99,8 @@ a smaller settings menu over the same file.
 | `generated/` | Codegen output (not committed) |
 | `patches/sdk/` | Our patches on top of ReXGlue v0.10.0 (function discovery for MSVC C++ code, FPSCR fix) |
 | `scripts/devenv.ps1` | Loads the Visual Studio toolchain into the shell |
+| `scripts/build_release.ps1` | Builds the game and copies it to an install folder (used by the installer) |
+| `scripts/package_release.ps1` | Makes the release asset, `StuntmanSetup-<version>.exe` |
 | `docs/NOTES.md` | Findings about the game and the state of the port |
 | `tools/` | Analysis helpers |
 

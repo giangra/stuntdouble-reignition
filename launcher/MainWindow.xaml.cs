@@ -36,7 +36,10 @@ public partial class MainWindow : Window
 
         var version = Assembly.GetExecutingAssembly().GetName().Version;
         VersionText.Text = $"Launcher {version?.ToString(3)} · ReXGlue";
-        CheckInstall();
+        if (!File.Exists(Path.Combine(exeDir_, GameExe)))
+            EnterInstallMode();
+        else
+            CheckInstall();
         Loaded += (_, _) => PlayButton.Focus();
     }
 
@@ -96,6 +99,37 @@ public partial class MainWindow : Window
 
         log_ = AddRow(AdvancedPanel, L.Log, L.LogHint);
         log_.SetOptions(OnOff(), false);
+
+        // Only for installs made by the installer (it leaves install.log)
+        if (File.Exists(Path.Combine(exeDir_, "install.log")))
+        {
+            var uninstall = new Button
+            {
+                Content = L.Uninstall,
+                Style = (Style)Application.Current.Resources["DangerButton"],
+                HorizontalAlignment = HorizontalAlignment.Left,
+                Margin = new Thickness(14, 24, 0, 0),
+            };
+            uninstall.Click += async (_, _) => await UninstallAsync();
+            AdvancedPanel.Children.Add(uninstall);
+        }
+    }
+
+    private async Task UninstallAsync()
+    {
+        var dir = exeDir_.TrimEnd('\\');
+        if (!await Confirm(string.Format(L.ConfirmUninstall, dir))) return;
+        Shortcuts.Remove();
+        // The folder holds this exe, so a detached shell deletes it once the
+        // launcher has exited. rmdir /s removes junctions without following them.
+        Process.Start(new ProcessStartInfo("cmd.exe",
+            $"/c timeout /t 2 /nobreak >nul & rmdir /s /q \"{dir}\"")
+        {
+            CreateNoWindow = true,
+            UseShellExecute = false,
+            WorkingDirectory = Path.GetTempPath(),
+        });
+        Application.Current.Shutdown();
     }
 
     private void ShowSettings(Settings s)
@@ -195,6 +229,11 @@ public partial class MainWindow : Window
 
     private async void OnPlay(object sender, RoutedEventArgs e)
     {
+        if (installMode_)
+        {
+            await InstallAsync();
+            return;
+        }
         if (!CheckInstall() || !SaveSettings()) return;
 
         Process process;
