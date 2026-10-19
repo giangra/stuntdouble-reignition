@@ -27,3 +27,11 @@ name = "shared_tail_822EEB14"
 # Indirect call targets reported at runtime ("Call to unresolved function")
 [entrypoint.functions.0x82234CA0]
 name = "indirect_target_82234CA0"
+
+# Frame rate: D3D's swap queue reads the presentation interval render state
+# (lwz r10,13572(r31) at 0x8227F66C, in sub_8227F5B8). src/frame_rate.cpp
+# turns 2 (30 FPS) into 1 (60 FPS) when target_fps is 60.
+[[entrypoint.midasm_hook]]
+address = 0x8227F670
+name = "StuntmanPresentInterval"
+registers = ["r10"]

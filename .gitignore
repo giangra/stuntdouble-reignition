@@ -1,5 +1,7 @@
 # Build output
 /out/
+/launcher/bin/
+/launcher/obj/
 *.exe
 *.dll
 *.pdb

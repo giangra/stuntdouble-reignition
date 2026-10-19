@@ -18,6 +18,9 @@ include(generated/rexglue.cmake)
 # Sources
 set(STUNTMAN_SOURCES
     src/main.cpp
+    src/frame_rate.cpp
+    src/achievement_catalog.cpp
+    src/settings_menu.cpp
 )
 
 if(WIN32)
@@ -41,6 +44,31 @@ if(WIN32)
         COMMAND_EXPAND_LISTS
         VERBATIM
     )
+endif()
+
+# Launcher (WPF, launcher/): published as one exe next to stuntman.exe.
+# Needs the .NET SDK; skipped without it.
+find_program(DOTNET_EXECUTABLE dotnet)
+if(WIN32 AND DOTNET_EXECUTABLE)
+    file(GLOB LAUNCHER_SOURCES CONFIGURE_DEPENDS
+        "${CMAKE_CURRENT_SOURCE_DIR}/launcher/*.cs"
+        "${CMAKE_CURRENT_SOURCE_DIR}/launcher/*.xaml"
+        "${CMAKE_CURRENT_SOURCE_DIR}/launcher/*.csproj")
+    set(LAUNCHER_STAMP "${CMAKE_CURRENT_BINARY_DIR}/launcher.stamp")
+    add_custom_command(
+        OUTPUT "${LAUNCHER_STAMP}"
+        COMMAND ${DOTNET_EXECUTABLE} publish "${CMAKE_CURRENT_SOURCE_DIR}/launcher/StuntmanLauncher.csproj"
+            -c Release -o "${CMAKE_CURRENT_BINARY_DIR}/launcher-publish" --nologo -v quiet
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${CMAKE_CURRENT_BINARY_DIR}/launcher-publish/StuntmanLauncher.exe" "${CMAKE_CURRENT_BINARY_DIR}"
+        COMMAND ${CMAKE_COMMAND} -E touch "${LAUNCHER_STAMP}"
+        DEPENDS ${LAUNCHER_SOURCES} "${CMAKE_CURRENT_SOURCE_DIR}/launcher/icon.ico"
+        COMMENT "Publishing StuntmanLauncher.exe"
+        VERBATIM
+    )
+    add_custom_target(stuntman_launcher ALL DEPENDS "${LAUNCHER_STAMP}")
+else()
+    message(STATUS "dotnet not found: StuntmanLauncher.exe will not be built")
 endif()
 
 # The SDK's UI headers include imgui.h. Headers only: ImGui is compiled into

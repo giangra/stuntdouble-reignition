@@ -95,6 +95,41 @@ It names the `sub_XXXXXXXX` and the line in `generated/default/*.cpp`; the
 - [x] Main menu, career and quick play reached with a controller
 - [x] Races load and play; saving works
 - [x] Runs on stock ReXGlue v0.10.0 plus our two patches
+- [x] In-game settings menu on F1 (`src/settings_menu.cpp`): resolution
+      scale, anisotropic filtering, CAS/FSR, fullscreen, vsync, letterbox,
+      monitor, language (`user_language`, read by `XGetLanguage` at boot).
+      Saves to `stuntman.toml` next to the exe. The SDK's raw cvar editor
+      stays on F4.
+- [x] Launcher (`launcher/`, WPF): writes `stuntman.toml` and starts the
+      game. Ultrawide: the game sizes its back buffer from the guest video
+      mode (`video_mode_width/height`) and renders natively at it, but keeps
+      a 16:9 projection and UI, so 3440x1440 comes out stretched. "Black
+      bars" mode gives it the largest 16:9 mode that fits (2560x1440) and the
+      presenter letterboxes it.
+- [x] Achievements tab in the launcher. The runtime saves unlocks in
+      `Documents/stuntman/achievements/545107F4.toml` (id -> FILETIME).
+      Text, gamerscore and icons are in the XEX's XDBF, unreadable outside
+      the runtime, so the game writes `545107F4.catalog.json` and
+      `icons/545107F4/<image id>.png` there at each launch
+      (`src/achievement_catalog.cpp`). 49 achievements, 970 G.
+- [x] Saves tab in the launcher. Layout: `Documents/stuntman/<XUID>/545107F4/
+      00000001/Save Data/{CareerData,replays,ghosts,Arenas,...}` plus
+      `Headers/00000001/Save Data.header`. Deleting the whole `545107F4`
+      folder gives a clean start: the game recreates it on boot.
+- [ ] True ultrawide: patch the projection aspect and the 2D UI layout
+- [x] 60 FPS (cvar `target_fps`, launcher "Frame rate"). The 30 FPS cap is
+      D3D's presentation interval: render state at device+13572 (setters
+      `sub_822801F0`, `sub_822625C0`), read when a swap is queued in
+      `sub_8227F5B8` (0x8227F66C) and mapped to a vblank count (0/1->1, 2->2,
+      4->3, 0x80000000->0). The swap queue is `sub_8227F420`: target vblank =
+      last target + interval, shown by the vblank handler `sub_8227F320`
+      (device+16524 counts vblanks). A midasm hook at 0x8227F670 turns 2
+      into 1: measured 60 FPS (`log_fps = true` logs it every 5 s).
+      Gameplay runs at normal speed at 60 (tested in races, 2026-10-19), so
+      the simulation is time-based. Code notes (`sub_822F82F0` = seconds between two counter values,
+      `sub_8234A140` = QueryPerformanceFrequency; `sub_8233AE68` uses them for
+      network timeouts, not the frame step). `tools/ppc_listing.py <addr>`
+      prints a function's PowerPC listing with addresses.
 
 ## Open issues
 
