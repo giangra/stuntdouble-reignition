@@ -9,7 +9,7 @@
     <AssemblyName>StuntmanLauncher</AssemblyName>
     <RootNamespace>StuntmanLauncher</RootNamespace>
     <ApplicationIcon>icon.ico</ApplicationIcon>
-    <Version>0.1.0</Version>
+    <Version>0.1.1</Version>
     <Product>Stuntman: Ignition Recompiled</Product>
     <!-- Single exe next to stuntman.exe, no .NET install needed -->
     <SelfContained>true</SelfContained>
