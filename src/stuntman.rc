@@ -1,0 +1,7 @@
+// stuntman - executable resources: the icon and the menu fonts.
+
+#include "resources.h"
+
+IDI_STUNTMAN ICON "../launcher/icon.ico"
+IDR_FONT_MENU RCDATA "../assets/fonts/Oswald-Bold.ttf"
+IDR_FONT_STENCIL RCDATA "../assets/fonts/BigShouldersStencil-ExtraBold.ttf"

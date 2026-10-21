@@ -95,23 +95,46 @@ It names the `sub_XXXXXXXX` and the line in `generated/default/*.cpp`; the
 - [x] Main menu, career and quick play reached with a controller
 - [x] Races load and play; saving works
 - [x] Runs on stock ReXGlue v0.10.0 plus our two patches
-- [x] In-game settings menu on F1 (`src/settings_menu.cpp`): resolution
-      scale, anisotropic filtering, CAS/FSR, fullscreen, vsync, letterbox,
-      monitor, language (`user_language`, read by `XGetLanguage` at boot).
-      Saves to `stuntman.toml` next to the exe. The SDK's raw cvar editor
+- [x] PC menu (`src/pc_menu.cpp`, look in `src/ui_theme.cpp`), drawn with
+      ImGui shapes to look like the game's front end (no game art; fonts
+      Oswald and Big Shoulders Stencil, OFL, as RCDATA in `src/stuntman.rc`).
+      Start screen: `LaunchModule` is overridden and only runs when Play is
+      chosen, so nothing plays underneath and `user_language` (read by
+      `XGetLanguage` at boot) applies at once. In game: F1 or Back + Start.
+      Pages: video, controls (SDK keyboard binds `keybind_*` with our
+      defaults in `src/pad_input.cpp`, controller layout `pad_*`), game,
+      achievements (from `KernelState`, icons through the SDK's
+      `AchievementIconCache`). Saves `stuntman.toml` on every change; the
+      restart-only cvars are compared with their startup values for the
+      "restart now" prompt, which relaunches the exe with the same command
+      line. First start without a config: desktop resolution, Windows
+      language (`PcMenu::ApplyFirstRunDefaults`). The SDK's raw cvar editor
       stays on F4.
-- [x] Launcher (`launcher/`, WPF): writes `stuntman.toml` and starts the
-      game. Ultrawide: the game sizes its back buffer from the guest video
+      Input goes through `patches/sdk/0003-input-state-filter.patch`: a
+      per-device callback in `InputSystem::GetState`. It remaps the pad,
+      blanks every device while the menu is open and afterwards until the
+      buttons are released, and records the raw buttons for the menu. Before
+      Play the guest doesn't poll, so the start screen calls `GetState`
+      itself (never while the guest runs: `RefreshDevices` isn't locked).
+      Screenshots of the pages without touching the desktop's input:
+      `STUNTMAN_MENU_PAGE=video|controls|keyboard|controller|game|achievements`
+      opens the start screen on that page, and `PrintWindow` with
+      `PW_RENDERFULLCONTENT` captures the window even in the background.
+      SDL ignores key messages posted to an unfocused window.
+- [x] Launcher (`launcher/`, WPF): now installer, Play and saves only; the
+      settings and achievements tabs moved to the PC menu. Shortcuts: the
+      game on the desktop and in the Start menu, the launcher in the Start
+      menu. Ultrawide: the game sizes its back buffer from the guest video
       mode (`video_mode_width/height`) and renders natively at it, but keeps
       a 16:9 projection and UI, so 3440x1440 comes out stretched. "Black
       bars" mode gives it the largest 16:9 mode that fits (2560x1440) and the
       presenter letterboxes it.
-- [x] Achievements tab in the launcher. The runtime saves unlocks in
+- [x] Achievements. The runtime saves unlocks in
       `Documents/stuntman/achievements/545107F4.toml` (id -> FILETIME).
-      Text, gamerscore and icons are in the XEX's XDBF, unreadable outside
-      the runtime, so the game writes `545107F4.catalog.json` and
-      `icons/545107F4/<image id>.png` there at each launch
-      (`src/achievement_catalog.cpp`). 49 achievements, 970 G.
+      Text, gamerscore and icons are in the XEX's XDBF, loaded with the
+      module before the start screen shows. 49 achievements, 970 G. (The
+      launcher used to read a catalog the game exported at each start;
+      removed with its achievements tab, see git history.)
 - [x] Saves tab in the launcher. Layout: `Documents/stuntman/<XUID>/545107F4/
       00000001/Save Data/{CareerData,replays,ghosts,Arenas,...}` plus
       `Headers/00000001/Save Data.header`. Deleting the whole `545107F4`
@@ -127,7 +150,7 @@ It names the `sub_XXXXXXXX` and the line in `generated/default/*.cpp`; the
       Test with STUNTMAN_SOURCE=<local repo> STUNTMAN_SOURCE_REF=<branch>
       and `--iso <file> --dir <folder> --auto`.
 - [ ] True ultrawide: patch the projection aspect and the 2D UI layout
-- [x] 60 FPS (cvar `target_fps`, launcher "Frame rate"). The 30 FPS cap is
+- [x] 60 FPS (cvar `target_fps`, PC menu > Video). The 30 FPS cap is
       D3D's presentation interval: render state at device+13572 (setters
       `sub_822801F0`, `sub_822625C0`), read when a swap is queued in
       `sub_8227F5B8` (0x8227F66C) and mapped to a vblank count (0/1->1, 2->2,

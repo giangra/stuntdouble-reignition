@@ -19,8 +19,8 @@ neither do its releases. You need your own legally dumped copy of the Xbox
 2. Pick your Stuntman: Ignition ISO and an install folder (default
    `C:\Games\StuntmanIgnition`), then press **Install**.
 3. When it's done, start the game from the **Stuntman Ignition** shortcut on
-   the desktop: it opens the launcher, where you set graphics, language and
-   frame rate, then press **Play**.
+   the desktop. It opens on a start screen where you set video, controls and
+   language, look at your achievements, and press **Play**.
 
 The installer checks that the ISO is Stuntman: Ignition, extracts it, and
 gets what the build needs if it is missing: the free Microsoft Visual Studio
@@ -60,44 +60,68 @@ kept. Its log is `install.log` in the install folder.
    cmake --preset win-amd64-relwithdebinfo -DREXSDK_DIR=thirdparty/rexglue-sdk
    cmake --build out\build\win-amd64-relwithdebinfo
    ```
-4. Start `out\build\win-amd64-relwithdebinfo\StuntmanLauncher.exe`, pick
-   your settings and press **Play**. Or run the game directly from the
-   repository root:
+4. Run the game from the repository root (it finds `game\` there), or start
+   `out\build\win-amd64-relwithdebinfo\StuntmanLauncher.exe`:
    ```powershell
    .\out\build\win-amd64-relwithdebinfo\stuntman.exe --log_file=stuntman.log
    ```
 
+## PC menu
+
+The game opens on a full-screen start screen in the style of the game's own
+menus: **Play**, **Video**, **Controls**, **Game**, **Achievements** and
+**Quit**. While playing, **F1** (or **Back + Start** on a controller) opens
+the same menu over the game, which gets no input while it is open; the first
+entry resumes. It works with keyboard, mouse and controller, and every change
+is saved at once to `stuntman.toml` next to the game.
+
+- **Video:** fullscreen or windowed, resolution including ultrawide (21:9,
+  32:9) and 16:10, black bars or stretch on screens that aren't 16:9 (a true
+  ultrawide view needs a game patch, not done yet), 30 or 60 FPS, V-Sync,
+  supersampling, texture filtering, an FPS counter (also F2).
+- **Controls:** keyboard on or off, two keys per action, and a controller
+  layout that swaps buttons. The menus always use the normal layout, so a bad
+  layout can't lock you out.
+- **Game:** language (English, French, German, Spanish, Italian), start
+  screen on or off, log file.
+- **Achievements:** what you unlocked and when, with the game's icons.
+
+Settings the game reads only at startup (resolution, supersampling, monitor,
+and the language once the game is running) show a **Restart now** prompt.
+The menu is in Italian when the game is, English otherwise.
+
+Default keyboard controls:
+
+| Action | Keys |
+|---|---|
+| Gas / brake, reverse (RT / LT) | W / S |
+| Steer | A, D or Left, Right |
+| Left stick up / down | Up / Down |
+| A (confirm) / B (back) | Space or Enter / Backspace |
+| X / Y / LB / RB | E / Q / Z / C |
+| Camera (right stick) | I J K L |
+| D-pad | 1 2 3 4 |
+| Start (pause) / Back | Esc or P / Tab |
+
 ## Launcher
 
-`StuntmanLauncher.exe` sits next to `stuntman.exe` and writes `stuntman.toml`,
-the settings file the game loads at startup:
-
-- Display mode and resolution, including ultrawide (21:9, 32:9) and 16:10.
-  The game is 16:9: on other screens it is shown with black bars or
-  stretched. A true ultrawide view needs a game patch (not done yet).
-- Supersampling, VSync, texture filtering, CAS / FSR output filter
-- Game language (English, French, German, Spanish, Italian)
-- Frame rate: 30 (original) or 60 FPS
-- Log file
-- Achievements: which ones you unlocked and when. The game exports their
-  text and icons from its executable at each start, so the list appears
-  after the first launch.
-- Saves: career and replays at a glance, delete single replays, back up and
-  restore (zips in `Documents\stuntman\backups`), start over from scratch
-  or reset achievements. A backup is made before anything is deleted.
-
-Its interface is in English or Italian, following Windows. In game, F1 opens
-a smaller settings menu over the same file.
+`StuntmanLauncher.exe` installs the game (see Installing) and, once it is
+installed, manages your saves: career and replays at a glance, delete single
+replays, back up and restore (zips in `Documents\stuntman\backups`), start
+over from scratch or reset achievements. A backup is made before anything is
+deleted. The Start menu has it as **Stuntman Ignition Launcher**, with
+Uninstall. Its interface is in English or Italian, following Windows.
 
 ## Layout
 
 | Path | Contents |
 |---|---|
 | `stuntman_manifest.toml` | Codegen manifest: function boundaries, switch tables, mid-asm hooks |
-| `src/` | Host code: app setup, game-specific hooks, the F1 settings menu |
-| `launcher/` | The launcher (C#, WPF) |
+| `src/` | Host code: app setup, game-specific hooks, the PC menu (start screen and F1) |
+| `assets/fonts/` | The PC menu's fonts, built into the exe |
+| `launcher/` | The installer and save manager (C#, WPF) |
 | `generated/` | Codegen output (not committed) |
-| `patches/sdk/` | Our patches on top of ReXGlue v0.10.0 (function discovery for MSVC C++ code, FPSCR fix) |
+| `patches/sdk/` | Our patches on top of ReXGlue v0.10.0 (function discovery for MSVC C++ code, FPSCR fix, input state filter) |
 | `scripts/devenv.ps1` | Loads the Visual Studio toolchain into the shell |
 | `scripts/build_release.ps1` | Builds the game and copies it to an install folder (used by the installer) |
 | `scripts/package_release.ps1` | Makes the release asset, `StuntmanSetup-<version>.exe` |
@@ -107,8 +131,10 @@ a smaller settings menu over the same file.
 ## License
 
 The code in this repository is under the [MIT License](LICENSE), except the
-patches in `patches/sdk/`: they modify the ReXGlue SDK and follow its BSD
-3-Clause license.
+patches in `patches/sdk/`, which modify the ReXGlue SDK and follow its BSD
+3-Clause license, and the fonts in `assets/fonts/` (Oswald and Big Shoulders
+Stencil), which are under the SIL Open Font License (license files next to
+them).
 
 Neither covers Stuntman: Ignition. Its executable and assets belong to their
 respective owners and are never included here; you need your own copy.

@@ -63,6 +63,7 @@ public sealed partial class Installer
     private string GameDir => Path.Combine(dir_, "game");
     private string ToolsDir => Path.Combine(dir_, "tools");
     public string LauncherPath => Path.Combine(dir_, "StuntmanLauncher.exe");
+    public string GamePath => Path.Combine(dir_, "stuntman.exe");
 
     public event Action<string>? LogLine;
 
@@ -311,7 +312,7 @@ public sealed partial class Installer
         if (!string.Equals(Path.GetFullPath(self), LauncherPath, StringComparison.OrdinalIgnoreCase))
             File.Copy(self, LauncherPath, overwrite: true);
 
-        Shortcuts.Create(LauncherPath, dir_);
+        Shortcuts.Create(GamePath, LauncherPath, dir_);
 
         if (!keepBuild_)
         {

@@ -3,7 +3,7 @@
 # SDK boilerplate lives in generated/rexglue.cmake.
 
 cmake_minimum_required(VERSION 3.25)
-project(stuntman LANGUAGES CXX)
+project(stuntman LANGUAGES CXX RC)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -19,9 +19,15 @@ include(generated/rexglue.cmake)
 set(STUNTMAN_SOURCES
     src/main.cpp
     src/frame_rate.cpp
-    src/achievement_catalog.cpp
-    src/settings_menu.cpp
+    src/fps_overlay.cpp
+    src/pad_input.cpp
+    src/pc_menu.cpp
+    src/ui_theme.cpp
 )
+if(WIN32)
+    # Icon and the PC menu's fonts
+    list(APPEND STUNTMAN_SOURCES src/stuntman.rc)
+endif()
 
 if(WIN32)
     add_executable(stuntman WIN32 ${STUNTMAN_SOURCES})

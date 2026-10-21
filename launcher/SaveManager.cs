@@ -15,7 +15,7 @@ public sealed record BackupFile(string Path, DateTime Created, long Bytes);
 // unlock file, so restoring one puts back exactly that state.
 public static partial class SaveManager
 {
-    private const string Title = Achievements.TitleId;
+    private const string Title = GamePaths.TitleId;
 
     [GeneratedRegex("^[0-9A-Fa-f]{16}$")]
     private static partial Regex ProfileName();

@@ -117,6 +117,8 @@
         </Grid>
         <TextBlock Text="{x:Static local:L.Tagline}" Margin="6,18,0,0" FontFamily="{StaticResource UiFont}"
                    FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource DimTextBrush}" />
+        <TextBlock Text="{x:Static local:L.InGameMenu}" Margin="6,22,0,0" TextWrapping="Wrap" LineHeight="19"
+                   FontFamily="{StaticResource UiFont}" FontSize="13" Foreground="{StaticResource DimTextBrush}" />
       </StackPanel>
 
       <StackPanel VerticalAlignment="Bottom" Margin="44,0,44,34">
@@ -129,13 +131,12 @@
       </StackPanel>
     </Grid>
 
-    <!-- ============ Right: settings ============ -->
-    <Grid Grid.Column="1" Background="{StaticResource PanelBrush}">
+    <!-- ============ Right: saves (or the installer) ============ -->
+    <Grid x:Name="RightPanel" Grid.Column="1" Background="{StaticResource PanelBrush}">
       <Grid.RowDefinitions>
         <RowDefinition Height="40" />
         <RowDefinition Height="Auto" />
         <RowDefinition Height="*" />
-        <RowDefinition Height="Auto" />
       </Grid.RowDefinitions>
 
       <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Right"
@@ -145,7 +146,7 @@
       </StackPanel>
 
       <!-- Install mode: shown when the game isn't next to the launcher -->
-      <Grid x:Name="InstallPanel" Grid.Row="1" Grid.RowSpan="3" Margin="40,8,40,24" Visibility="Collapsed">
+      <Grid x:Name="InstallPanel" Grid.Row="1" Grid.RowSpan="2" Margin="40,8,40,24" Visibility="Collapsed">
         <Grid.RowDefinitions>
           <RowDefinition Height="Auto" />
           <RowDefinition Height="*" />
@@ -210,74 +211,15 @@
         </Grid>
       </Grid>
 
-      <StackPanel x:Name="TabBar" Grid.Row="1" Orientation="Horizontal" Margin="40,8,40,18">
-        <RadioButton x:Name="TabVideo" Style="{StaticResource TabButton}" Content="{x:Static local:L.TabVideo}"
-                     GroupName="Tabs" IsChecked="True" Checked="OnTab" />
-        <RadioButton x:Name="TabGame" Style="{StaticResource TabButton}" Content="{x:Static local:L.TabGame}"
-                     GroupName="Tabs" Checked="OnTab" />
-        <RadioButton x:Name="TabAdvanced" Style="{StaticResource TabButton}"
-                     Content="{x:Static local:L.TabAdvanced}" GroupName="Tabs" Checked="OnTab" />
-        <RadioButton x:Name="TabAchievements" Style="{StaticResource TabButton}"
-                     Content="{x:Static local:L.TabAchievements}" GroupName="Tabs" Checked="OnTab" />
-        <RadioButton x:Name="TabSaves" Style="{StaticResource TabButton}"
-                     Content="{x:Static local:L.TabSaves}" GroupName="Tabs" Checked="OnTab" />
-      </StackPanel>
+      <TextBlock x:Name="SavesTitle" Grid.Row="1" Text="{x:Static local:L.TabSaves}" Margin="40,8,40,0"
+                 FontFamily="{StaticResource UiFont}" FontSize="22" FontWeight="Bold"
+                 Foreground="{StaticResource TextBrush}" />
 
       <!-- Saves: built in MainWindow.Saves.cs -->
-      <ScrollViewer x:Name="SavesPanel" Grid.Row="2" Grid.RowSpan="2" Margin="40,0,24,24"
-                    VerticalScrollBarVisibility="Auto" Focusable="False" Visibility="Collapsed">
+      <ScrollViewer x:Name="SavesPanel" Grid.Row="2" Margin="40,0,24,24"
+                    VerticalScrollBarVisibility="Auto" Focusable="False">
         <StackPanel x:Name="SavesContent" Margin="0,0,16,0" />
       </ScrollViewer>
-
-      <Grid Grid.Row="2" Margin="40,0,40,0">
-        <StackPanel x:Name="VideoPanel" />
-        <StackPanel x:Name="GamePanel" Visibility="Collapsed" />
-        <StackPanel x:Name="AdvancedPanel" Visibility="Collapsed" />
-      </Grid>
-
-      <!-- Achievements: summary, progress bar and a scrolling list -->
-      <Grid x:Name="AchievementsPanel" Grid.Row="2" Grid.RowSpan="2" Margin="40,0,24,24"
-            Visibility="Collapsed">
-        <Grid.RowDefinitions>
-          <RowDefinition Height="Auto" />
-          <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
-        <StackPanel Margin="0,0,16,14">
-          <Grid>
-            <TextBlock x:Name="AchSummary" FontFamily="{StaticResource UiFont}" FontSize="15"
-                       Foreground="{StaticResource TextBrush}" />
-            <TextBlock x:Name="AchScore" HorizontalAlignment="Right" FontFamily="{StaticResource UiFont}"
-                       FontSize="15" FontWeight="SemiBold" Foreground="{StaticResource AccentBrush}" />
-          </Grid>
-          <Grid Height="6" Margin="0,8,0,0" Background="{StaticResource LineBrush}">
-            <Grid.ColumnDefinitions>
-              <ColumnDefinition x:Name="AchDone" Width="0*" />
-              <ColumnDefinition x:Name="AchLeft" Width="1*" />
-            </Grid.ColumnDefinitions>
-            <Border Background="{StaticResource AccentBrush}" />
-          </Grid>
-        </StackPanel>
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Focusable="False">
-          <StackPanel x:Name="AchList" Margin="0,0,12,0" />
-        </ScrollViewer>
-      </Grid>
-
-      <Border x:Name="Footer" Grid.Row="3" BorderBrush="{StaticResource LineBrush}" BorderThickness="0,1,0,0"
-              Padding="40,16,40,24">
-        <Grid>
-          <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="Auto" />
-          </Grid.ColumnDefinitions>
-          <TextBlock x:Name="HintText" TextWrapping="Wrap" MinHeight="54" Margin="0,0,24,0"
-                     VerticalAlignment="Center" FontFamily="{StaticResource UiFont}" FontSize="13"
-                     LineHeight="19" Foreground="{StaticResource DimTextBrush}" />
-          <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-            <Button Style="{StaticResource FlatButton}" Content="{x:Static local:L.Defaults}" Click="OnDefaults" />
-            <Button Style="{StaticResource FlatButton}" Content="{x:Static local:L.Save}" Click="OnSave" />
-          </StackPanel>
-        </Grid>
-      </Border>
     </Grid>
 
     <!-- Yes/No confirmation over the whole window -->

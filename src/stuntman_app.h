@@ -4,14 +4,20 @@
 
 #pragma once
 
+#include <rex/cvar.h>
 #include <rex/filesystem.h>
+#include <rex/input/input_system.h>
 #include <rex/rex_app.h>
 #include <rex/ui/keybinds.h>
+#include <rex/ui/window.h>
 
+#include <cstdlib>
 #include <filesystem>
 
-#include "achievement_catalog.h"
-#include "settings_menu.h"
+#include "fps_overlay.h"
+#include "pad_input.h"
+#include "pc_menu.h"
+#include "ui_theme.h"
 
 class StuntmanApp : public rex::ReXApp {
  public:
@@ -23,43 +29,60 @@ class StuntmanApp : public rex::ReXApp {
         PPCImageConfig));
   }
 
-  // Override virtual hooks for customization:
-  // void OnPostInitLogging() override {}
+  // The config is loaded by now; the window doesn't exist yet.
+  void OnPostInitLogging() override { PcMenu::ApplyFirstRunDefaults(); }
 
   void OnPreSetup(rex::RuntimeConfig& config) override {
     // Xenos GPU emulation (D3D12 on Windows) from the rexgpu-xenos plugin
     config.gpu_plugin = "xenos";
   }
 
-  // void OnLoadXexImage(std::string& xex_image) override {}
-  // void OnPostLoadXexImage() override {}
-  // void OnPostSetup() override {}
-  // F1 toggles our settings menu. The menu deletes itself when closed.
+  // The PC menu's fonts, built into the exe (src/stuntman.rc).
+  void OnConfigureFonts(ImFontAtlas* atlas) override { theme::LoadFonts(atlas); }
+
+  // F1 opens the PC menu over the game, F2 the frame rate counter. The
+  // config is loaded by now, but the runtime doesn't exist yet.
   void OnCreateDialogs(rex::ui::ImGuiDrawer* drawer) override {
-    SettingsMenu::CaptureStartupValues();
-    rex::ui::RegisterBind("bind_stuntman_settings", "F1", "Toggle Stuntman settings menu",
-                          [this, drawer] {
-                            if (settings_menu_) {
-                              settings_menu_->RequestClose();
-                            } else {
-                              settings_menu_ = new SettingsMenu(
-                                  drawer, config_path_, [this] { settings_menu_ = nullptr; });
-                            }
-                          });
+    pad::ApplyKeyboardDefaults();
+    PcMenu::CaptureStartupValues();
+    rex::ui::RegisterBind("bind_stuntman_menu", "F1", "Open the PC menu", [this] { ToggleMenu(); });
+    rex::ui::RegisterBind("bind_stuntman_fps", "F2", "Show the frame rate", [this] {
+      if (menu_ && menu_->IsCapturing()) return;
+      const bool on = rex::cvar::GetFlagByName("show_fps") == "true";
+      rex::cvar::SetFlagByName("show_fps", on ? "false" : "true");
+      rex::cvar::SaveConfig(config_path_);
+    });
+    new FpsOverlay(drawer, [this] { Tick(); });  // owned by the drawer
   }
 
-  // Achievement text and icons for the launcher (see achievement_catalog.h).
-  void OnPreLaunchModule() override {
-    if (auto* rt = runtime()) WriteAchievementCatalog(rt->kernel_state(), rt->user_data_root());
+  void OnPostSetup() override {
+    if (window()) window()->SetTitle("Stuntman: Ignition");
+    if (auto* rt = runtime()) {
+      input_ = static_cast<rex::input::InputSystem*>(rt->input_system());
+      pad::Install(input_);
+    }
   }
 
-  // std::unique_ptr<rex::ui::ImGuiDialog> CreateAchievementsOverlay() override;
-  // std::unique_ptr<rex::ui::AchievementNotificationDialog>
-  // CreateAchievementNotificationDialog() override;
+  // With the start screen on, the game is launched only when Play is chosen.
+  void LaunchModule() override {
+    if (launched_ || rex::cvar::GetFlagByName("start_screen") != "true" || !imgui_drawer()) {
+      Launch();
+      return;
+    }
+    PcMenu::Hooks hooks;
+    hooks.play = [this] { Launch(); };
+    hooks.quit = [this] { Quit(); };
+    hooks.closed = [this] { menu_ = nullptr; };
+    hooks.poll_pads = [this] { pad::PollForMenu(input_); };
+    menu_ = new PcMenu(imgui_drawer(), PcMenu::Mode::kStart, config_path_, runtime(),
+                       immediate_drawer(), std::move(hooks));
+    // For screenshots of the menu pages: STUNTMAN_MENU_PAGE=video, keyboard...
+    if (const char* page = std::getenv("STUNTMAN_MENU_PAGE")) menu_->OpenPage(page);
+  }
 
   void OnShutdown() override {
-    delete settings_menu_;
-    settings_menu_ = nullptr;
+    rex::ui::UnregisterBind("bind_stuntman_menu");
+    rex::ui::UnregisterBind("bind_stuntman_fps");
   }
 
   // Game data lives in a "game" folder next to the exe or in the working
@@ -78,6 +101,42 @@ class StuntmanApp : public rex::ReXApp {
   }
 
  private:
+  void Launch() {
+    if (launched_) return;
+    launched_ = true;
+    PcMenu::CaptureLanguage();
+    rex::ReXApp::LaunchModule();
+  }
+
+  void Quit() {
+    if (window()) window()->RequestClose();
+  }
+
+  void ToggleMenu() {
+    if (menu_) {
+      if (menu_->mode() == PcMenu::Mode::kPause && !menu_->IsCapturing()) menu_->RequestClose();
+      return;
+    }
+    if (!launched_ || !imgui_drawer()) return;
+    PcMenu::Hooks hooks;
+    hooks.quit = [this] { Quit(); };
+    hooks.closed = [this] { menu_ = nullptr; };
+    menu_ = new PcMenu(imgui_drawer(), PcMenu::Mode::kPause, config_path_, runtime(),
+                       immediate_drawer(), std::move(hooks));
+  }
+
+  // Every frame: Back + Start on a controller toggles the PC menu.
+  void Tick() {
+    const uint32_t buttons = pad::MenuButtons();
+    constexpr uint32_t kCombo = (1u << pad::kBack) | (1u << pad::kStart);
+    const bool held = (buttons & kCombo) == kCombo;
+    if (held && !combo_held_) ToggleMenu();
+    combo_held_ = held;
+  }
+
   std::filesystem::path config_path_;
-  SettingsMenu* settings_menu_ = nullptr;
+  rex::input::InputSystem* input_ = nullptr;
+  PcMenu* menu_ = nullptr;  // owned by the ImGui drawer; deletes itself on close
+  bool launched_ = false;
+  bool combo_held_ = false;
 };

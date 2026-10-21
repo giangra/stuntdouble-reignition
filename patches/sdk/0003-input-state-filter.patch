@@ -1,0 +1,49 @@
+diff --git a/include/rex/input/input_system.h b/include/rex/input/input_system.h
+index 1cb3faa..1112c9c 100644
+--- a/include/rex/input/input_system.h
++++ b/include/rex/input/input_system.h
+@@ -10,6 +10,7 @@
+  * @modified    Tom Clay, 2026 - Adapted for ReXGlue runtime
+  */
+ 
++#include <functional>
+ #include <memory>
+ #include <vector>
+ 
+@@ -42,6 +43,12 @@ class InputSystem : public system::IInputSystem {
+   /// Replaces any previous assignment. Call before the guest starts polling.
+   void SetDeviceAssignment(std::unique_ptr<DeviceAssignment> assignment);
+ 
++  /// Sees each device's state before it is merged into its guest user's, and
++  /// may change it (button remapping, or blanking it while an app menu is
++  /// open). Runs on whichever thread calls GetState.
++  using StateFilter = std::function<void(const DeviceInfo& device, X_INPUT_STATE& state)>;
++  void SetStateFilter(StateFilter filter) { state_filter_ = std::move(filter); }
++
+   X_RESULT GetCapabilities(uint32_t user_index, uint32_t flags, X_INPUT_CAPABILITIES* out_caps);
+   X_RESULT GetState(uint32_t user_index, X_INPUT_STATE* out_state);
+   X_RESULT SetState(uint32_t user_index, X_INPUT_VIBRATION* vibration);
+@@ -59,6 +66,7 @@ class InputSystem : public system::IInputSystem {
+   std::vector<std::unique_ptr<InputDriver>> drivers_;
+ 
+   std::unique_ptr<DeviceAssignment> assignment_;
++  StateFilter state_filter_;
+   ActiveDeviceTracker active_devices_;
+ 
+   // Ordered by ordinal. Ordinals are never recycled, so unplugging pad one
+diff --git a/src/input/input_system.cpp b/src/input/input_system.cpp
+index 813bb1c..60c99df 100644
+--- a/src/input/input_system.cpp
++++ b/src/input/input_system.cpp
+@@ -233,6 +233,11 @@ X_RESULT InputSystem::GetState(uint32_t user_index, X_INPUT_STATE* out_state) {
+     if (driver->GetDeviceState(id, &state) != X_ERROR_SUCCESS) {
+       continue;
+     }
++    if (state_filter_) {
++      if (const DeviceInfo* info = DeviceInfoFor(id)) {
++        state_filter_(*info, state);
++      }
++    }
+     active_devices_.Observe(user_index, id, state.gamepad);
+     if (!any) {
+       merged = state;

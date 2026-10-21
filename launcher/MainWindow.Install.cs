@@ -27,9 +27,8 @@ public partial class MainWindow
     private void EnterInstallMode()
     {
         installMode_ = true;
-        TabBar.Visibility = Visibility.Collapsed;
-        VideoPanel.Visibility = Visibility.Collapsed;
-        Footer.Visibility = Visibility.Collapsed;
+        SavesTitle.Visibility = Visibility.Collapsed;
+        SavesPanel.Visibility = Visibility.Collapsed;
         InstallPanel.Visibility = Visibility.Visible;
         PlayButton.Content = L.Install;
         PlayButton.IsEnabled = false;
@@ -120,7 +119,11 @@ public partial class MainWindow
     {
         if (installed_)
         {
-            Process.Start(new ProcessStartInfo(installer_!.LauncherPath) { UseShellExecute = true });
+            Process.Start(new ProcessStartInfo(installer_!.GamePath)
+            {
+                WorkingDirectory = installDir_,
+                UseShellExecute = false,
+            });
             Close();
             return;
         }

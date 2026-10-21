@@ -9,7 +9,7 @@ namespace StuntmanLauncher;
 // The Saves tab: current save, replays, backups, start over.
 public partial class MainWindow
 {
-    private string UserFolder => Achievements.UserFolder(config_);
+    private string UserFolder => GamePaths.UserFolder(config_);
 
     private Brush Res(string key) => (Brush)Application.Current.Resources[key];
 
