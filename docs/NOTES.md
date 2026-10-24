@@ -214,6 +214,18 @@ It names the `sub_XXXXXXXX` and the line in `generated/default/*.cpp`; the
       scratch on the dev PC (VS and Git present): about 9 minutes.
       Test with STUNTMAN_SOURCE=<local repo> STUNTMAN_SOURCE_REF=<branch>
       and `--iso <file> --dir <folder> --auto`.
+- [x] Self-update (v0.3.0, `launcher/Updater.cs`): the installed launcher
+      (one with `install.log`) asks GitHub for `releases/latest` on start and
+      offers "Update to x.y.z". It downloads `StuntmanSetup-<version>.exe`,
+      checks it against the asset's `digest` (SHA-256) and its ProductVersion,
+      starts it with `--update <folder>` and exits. In update mode the
+      installer skips the ISO, links the already extracted `game` folder,
+      clones the source at its own tag (removing kept build files of the old
+      version), builds, and copies itself over `StuntmanLauncher.exe` (with
+      retries while the old one exits). About 6 minutes on the dev PC.
+      Releases must keep the asset name and launcher Version = tag. Tested
+      with a launcher built as 0.1.9 (offered 0.2.0, download verified) and
+      `--update` on a test install with STUNTMAN_SOURCE=<local repo>.
 - [ ] True ultrawide: patch the projection aspect and the 2D UI layout
 - [x] 60 FPS (cvar `target_fps`, PC menu > Video). The 30 FPS cap is
       D3D's presentation interval: render state at device+13572 (setters
@@ -228,6 +240,17 @@ It names the `sub_XXXXXXXX` and the line in `generated/default/*.cpp`; the
       `sub_8234A140` = QueryPerformanceFrequency; `sub_8233AE68` uses them for
       network timeouts, not the frame step). `tools/ppc_listing.py <addr>`
       prints a function's PowerPC listing with addresses.
+
+## Next steps (2026-10-24, after v0.3.0)
+
+- Hands-on test of 0.3.0: Smooth frame pacing in real play, audio and Bink
+  movie sync with the free-running vblank, 30 FPS mode, pause menu.
+- The first real launcher update (installed 0.3.0 -> next release) proves the
+  self-update path end to end; 0.2.0 users have to install 0.3.0 by hand.
+- Performance: VirtualProtect is still ~22% of the GPU thread (see
+  Performance for what didn't work).
+- Ideas: FR/DE/ES menu text, controller drawing on the layout page, true 21:9,
+  testing the installer on a clean PC.
 
 ## Open issues
 
