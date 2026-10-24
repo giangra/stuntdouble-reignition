@@ -32,6 +32,7 @@ public partial class MainWindow : Window
             CheckInstall();
             AddUninstall();
             ShowSaves();
+            CheckForUpdate();
         }
         Loaded += (_, _) => PlayButton.Focus();
     }

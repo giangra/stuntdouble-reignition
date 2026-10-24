@@ -8,10 +8,12 @@ namespace StuntmanLauncher;
 
 // Install mode: the launcher runs where the game isn't installed (e.g. the
 // downloaded release exe). The right panel becomes the installer and Play
-// becomes Install.
+// becomes Install. With --update <folder> (started by an older launcher, see
+// Updater) it rebuilds that install at this version, without an ISO.
 public partial class MainWindow
 {
     private bool installMode_;
+    private bool updateMode_;
     private bool installing_;
     private bool installed_;
     private string? isoPath_;
@@ -47,11 +49,25 @@ public partial class MainWindow
         };
 
         // StuntmanSetup.exe --iso <file> [--dir <folder>] [--keep-build] [--auto]
+        // StuntmanSetup.exe --update <folder>
         var args = Environment.GetCommandLineArgs();
         string? Arg(string name)
         {
             int i = Array.IndexOf(args, name);
             return i >= 0 && i + 1 < args.Length ? args[i + 1] : null;
+        }
+        if (Arg("--update") is string update)
+        {
+            updateMode_ = true;
+            installDir_ = Path.GetFullPath(update);
+            InstallDirText.Text = installDir_;
+            // Keep build files if the install kept them
+            if (Directory.Exists(Path.Combine(installDir_, "build"))) keepBuild_.Select(true);
+            PlayButton.Content = L.Update;
+            PlayButton.IsEnabled = true;
+            StatusText.Text = string.Format(L.UpdateIntro, Updater.Current.ToString(3), installDir_);
+            Loaded += async (_, _) => await InstallAsync();
+            return;
         }
         if (Arg("--dir") is string dir)
         {
@@ -127,11 +143,11 @@ public partial class MainWindow
             Close();
             return;
         }
-        if (isoPath_ == null) return;
+        if (isoPath_ == null && !updateMode_) return;
 
         installing_ = true;
         PlayButton.IsEnabled = false;
-        PlayButton.Content = L.Installing;
+        PlayButton.Content = updateMode_ ? L.Updating : L.Installing;
         StatusText.Text = "";
         InstallForm.Visibility = Visibility.Collapsed;
         InstallProgressPanel.Visibility = Visibility.Visible;
@@ -142,13 +158,13 @@ public partial class MainWindow
         installCancel_ = new CancellationTokenSource();
         try
         {
-            installer_ = new Installer(isoPath_, installDir_, (bool)keepBuild_.Value, progress);
+            installer_ = new Installer(updateMode_ ? null : isoPath_, installDir_, (bool)keepBuild_.Value, progress);
             installer_.LogLine += line => Dispatcher.BeginInvoke(() => AppendLog(line));
             await installer_.RunAsync(installCancel_.Token);
             foreach (var row in stepRows_.Values) row.SetDone();
             installed_ = true;
             PlayButton.Content = L.Play;
-            StatusText.Text = L.InstallDone;
+            StatusText.Text = updateMode_ ? string.Format(L.UpdateDone, Updater.Current.ToString(3)) : L.InstallDone;
         }
         catch (OperationCanceledException)
         {
@@ -157,10 +173,17 @@ public partial class MainWindow
         catch (Exception ex)
         {
             current_?.SetFailed();
-            PlayButton.Content = L.Install;
             var message = ex is InstallException ? ex.Message : ex.GetType().Name + ": " + ex.Message;
-            StatusText.Text = string.Format(L.InstallFailed, message.TrimEnd('.') + ".",
-                installer_?.LogPath ?? "");
+            message = message.TrimEnd('.') + ".";
+            if (updateMode_)
+            {
+                // Stay on the steps (the form asks for an ISO, not needed here)
+                PlayButton.Content = L.Update;
+                StatusText.Text = string.Format(L.UpdateFailedBuild, message, installer_?.LogPath ?? "");
+                return;
+            }
+            PlayButton.Content = L.Install;
+            StatusText.Text = string.Format(L.InstallFailed, message, installer_?.LogPath ?? "");
             InstallForm.Visibility = Visibility.Visible;
             InstallProgressPanel.Visibility = Visibility.Collapsed;
         }
@@ -199,11 +222,11 @@ public partial class MainWindow
         stepRows_.Clear();
         var names = new Dictionary<InstallStep, string>
         {
-            [InstallStep.CheckIso] = L.StepCheckIso,
+            [InstallStep.CheckIso] = updateMode_ ? L.StepCheckFiles : L.StepCheckIso,
             [InstallStep.Tools] = L.StepTools,
             [InstallStep.Git] = L.StepGit,
             [InstallStep.Source] = L.StepSource,
-            [InstallStep.Extract] = L.StepExtract,
+            [InstallStep.Extract] = updateMode_ ? L.StepLinkFiles : L.StepExtract,
             [InstallStep.Build] = L.StepBuild,
             [InstallStep.Finish] = L.StepFinish,
         };

@@ -128,6 +128,9 @@
                    FontFamily="{StaticResource UiFont}" FontSize="13" Foreground="{StaticResource DimTextBrush}" />
         <TextBlock x:Name="VersionText" Margin="2,4,0,0" FontFamily="{StaticResource UiFont}" FontSize="11"
                    Foreground="#FF55555E" />
+        <!-- Shown when GitHub has a newer release (MainWindow.Update.cs) -->
+        <Button x:Name="UpdateButton" Style="{StaticResource SmallButton}" HorizontalAlignment="Left"
+                Margin="0,10,0,0" Visibility="Collapsed" Click="OnUpdate" />
       </StackPanel>
     </Grid>
 

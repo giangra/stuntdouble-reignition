@@ -18,6 +18,8 @@ public sealed record InstallProgress(InstallStep Step, double? Fraction, string?
 // this project's source at the matching tag, extracts the ISO, then runs
 // scripts\build_release.ps1, which generates and compiles the game and puts
 // the result in the install folder. Nothing of the game is downloaded.
+// Without an ISO it updates an existing install (see Updater): the game files
+// extracted the first time are reused and only the source and build are new.
 public sealed partial class Installer
 {
     public const string TitleId = "545107F4";
@@ -37,14 +39,14 @@ public sealed partial class Installer
 
     public const long RequiredFreeBytes = 12L << 30;
 
-    private readonly string iso_;
+    private readonly string? iso_;
     private readonly string dir_;
     private readonly bool keepBuild_;
     private readonly IProgress<InstallProgress> progress_;
     private readonly StreamWriter log_;
     private readonly Dictionary<string, string> env_ = new();
 
-    public Installer(string iso, string installDir, bool keepBuild, IProgress<InstallProgress> progress)
+    public Installer(string? iso, string installDir, bool keepBuild, IProgress<InstallProgress> progress)
     {
         iso_ = iso;
         dir_ = Path.GetFullPath(installDir);
@@ -64,6 +66,7 @@ public sealed partial class Installer
     private string ToolsDir => Path.Combine(dir_, "tools");
     public string LauncherPath => Path.Combine(dir_, "StuntmanLauncher.exe");
     public string GamePath => Path.Combine(dir_, "stuntman.exe");
+    public bool IsUpdate => iso_ == null;
 
     public event Action<string>? LogLine;
 
@@ -95,7 +98,9 @@ public sealed partial class Installer
 
     public async Task RunAsync(CancellationToken cancel)
     {
-        Log($"=== Install {DateTime.Now:u} to {dir_}, ISO {iso_}");
+        Log(IsUpdate
+            ? $"=== Update {DateTime.Now:u} of {dir_} to {Updater.Current}"
+            : $"=== Install {DateTime.Now:u} to {dir_}, ISO {iso_}");
         try
         {
             await Task.Run(() => CheckSpace(), cancel);
@@ -123,8 +128,18 @@ public sealed partial class Installer
     private void CheckSpace()
     {
         Report(InstallStep.CheckIso);
-        var error = CheckIso(iso_);
-        if (error != null) throw new InstallException(string.Format(L.IsoWrong, error));
+        if (IsUpdate)
+        {
+            if (!File.Exists(Path.Combine(GameDir, "default.xex")))
+                throw new InstallException(L.UpdateNoGameFiles);
+            // The build replaces stuntman.exe
+            if (Process.GetProcessesByName("stuntman").Length > 0) throw new InstallException(L.UpdateCloseGame);
+        }
+        else
+        {
+            var error = CheckIso(iso_!);
+            if (error != null) throw new InstallException(string.Format(L.IsoWrong, error));
+        }
 
         var drive = new DriveInfo(Path.GetPathRoot(dir_)!);
         long needed = RequiredFreeBytes - (Directory.Exists(GameDir) ? 6L << 30 : 0);
@@ -233,8 +248,15 @@ public sealed partial class Installer
         Report(InstallStep.Source);
         if (Directory.Exists(Path.Combine(BuildDir, ".git")))
         {
-            Log("Source already present, reusing it");
-            return;
+            if (!IsUpdate)
+            {
+                Log("Source already present, reusing it");
+                return;
+            }
+            // Kept build files are of the old version: start from a clean
+            // checkout of the new one.
+            Log("Removing the previous version's build files");
+            await Task.Run(RemoveBuildDir, cancel);
         }
         var version = Assembly.GetExecutingAssembly().GetName().Version!;
         var source = Environment.GetEnvironmentVariable("STUNTMAN_SOURCE") ?? RepoUrl;
@@ -245,13 +267,25 @@ public sealed partial class Installer
 
     private void ExtractIso(CancellationToken cancel)
     {
-        using var x = new XisoReader(iso_);
+        if (IsUpdate)
+            Report(InstallStep.Extract, 1);
+        else
+            ExtractFiles(cancel);
+        LinkGameFolder();
+    }
+
+    private void ExtractFiles(CancellationToken cancel)
+    {
+        using var x = new XisoReader(iso_!);
         long total = x.TotalFileBytes;
         var progress = new Progress<long>(done => Report(InstallStep.Extract, (double)done / total));
         Report(InstallStep.Extract, 0);
         x.ExtractAll(GameDir, new ThrottledProgress(progress), cancel);
         Log($"Extracted {x.Entries.Count} entries to {GameDir}");
+    }
 
+    private void LinkGameFolder()
+    {
         // The build reads the game from build\game
         var link = Path.Combine(BuildDir, "game");
         if (!Directory.Exists(link))
@@ -310,19 +344,42 @@ public sealed partial class Installer
         Report(InstallStep.Finish);
         var self = Environment.ProcessPath!;
         if (!string.Equals(Path.GetFullPath(self), LauncherPath, StringComparison.OrdinalIgnoreCase))
-            File.Copy(self, LauncherPath, overwrite: true);
+            CopyLauncher(self);
 
         Shortcuts.Create(GamePath, LauncherPath, dir_);
 
         if (!keepBuild_)
         {
-            // Unlink the game folder before deleting, so the delete can't
-            // reach through the junction into the extracted files.
-            var link = Path.Combine(BuildDir, "game");
-            if (Directory.Exists(link)) Directory.Delete(link);
-            DeleteTree(BuildDir);
+            RemoveBuildDir();
             DeleteTree(ToolsDir);
             Log("Build files removed");
+        }
+    }
+
+    private void RemoveBuildDir()
+    {
+        // Unlink the game folder before deleting, so the delete can't reach
+        // through the junction into the extracted files.
+        var link = Path.Combine(BuildDir, "game");
+        if (Directory.Exists(link)) Directory.Delete(link);
+        DeleteTree(BuildDir);
+    }
+
+    // When updating, the old launcher that started this one may take a moment
+    // to exit and release its exe.
+    private void CopyLauncher(string self)
+    {
+        for (int attempt = 0; ; ++attempt)
+        {
+            try
+            {
+                File.Copy(self, LauncherPath, overwrite: true);
+                return;
+            }
+            catch (IOException) when (attempt < 20)
+            {
+                Thread.Sleep(500);
+            }
         }
     }
 

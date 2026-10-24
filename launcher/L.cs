@@ -98,6 +98,32 @@ public static class L
     public static string ConfirmCancelInstall => T("Stop the installation? You can resume it later.",
         "Interrompere l'installazione? Potrai riprenderla più tardi.");
 
+    // ---- Updates ----
+    public static string UpdateAvailable => T("UPDATE TO {0}", "AGGIORNA ALLA {0}");
+    public static string ConfirmUpdate => T(
+        "Update to version {0}? The new setup downloads the port's source and rebuilds the game on this PC from the game files already installed (no ISO needed): about 10–20 minutes. Saves, achievements and settings are kept.",
+        "Aggiornare alla versione {0}? Il nuovo setup scarica i sorgenti del port e ricompila il gioco su questo PC dai file del gioco già installati (non serve la ISO): circa 10–20 minuti. Salvataggi, obiettivi e impostazioni restano.");
+    public static string UpdateDownloading => T("Downloading the update… {0:P0}", "Download dell'aggiornamento… {0:P0}");
+    public static string UpdateFailed => T("The update could not be downloaded: {0}", "Impossibile scaricare l'aggiornamento: {0}");
+    public static string UpdateCorrupt => T("the downloaded file doesn't match the release ({0}).",
+        "il file scaricato non corrisponde alla release ({0}).");
+    public static string Update => T("UPDATE", "AGGIORNA");
+    public static string Updating => T("UPDATING…", "AGGIORNAMENTO…");
+    public static string UpdateTitle => T("UPDATE", "AGGIORNAMENTO");
+    public static string UpdateIntro => T(
+        "Version {0} is rebuilt from the game files already in {1}. Saves, achievements and settings are kept.",
+        "La versione {0} viene ricompilata dai file del gioco già presenti in {1}. Salvataggi, obiettivi e impostazioni restano.");
+    public static string StepCheckFiles => T("Check the installed game", "Verifica del gioco installato");
+    public static string StepLinkFiles => T("Use the extracted game files", "Uso dei file del gioco estratti");
+    public static string UpdateNoGameFiles => T(
+        "The extracted game files (game\\default.xex) are missing from the install folder: install again from the ISO.",
+        "Nella cartella di installazione mancano i file del gioco estratti (game\\default.xex): reinstalla dalla ISO.");
+    public static string UpdateCloseGame => T("Close the game first, then press Update again.",
+        "Chiudi prima il gioco, poi premi di nuovo Aggiorna.");
+    public static string UpdateDone => T("Updated to version {0}.", "Aggiornato alla versione {0}.");
+    public static string UpdateFailedBuild => T("Update failed: {0} Press Update to retry. Log: {1}",
+        "Aggiornamento non riuscito: {0} Premi Aggiorna per riprovare. Log: {1}");
+
     public static string Uninstall => T("Uninstall", "Disinstalla");
     public static string ConfirmUninstall => T(
         "Remove the game from {0} and its shortcuts? Saves and achievements in Documents\\stuntman are kept.",
