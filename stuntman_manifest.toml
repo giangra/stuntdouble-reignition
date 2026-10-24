@@ -35,3 +35,11 @@ name = "indirect_target_82234CA0"
 address = 0x8227F670
 name = "StuntmanPresentInterval"
 registers = ["r10"]
+
+# DrawVertices (sub_82300CE8) with no vertex declaration: the UI renderer's
+# cache outlived a device state reset. src/game_fixes.cpp skips the draw.
+[[entrypoint.midasm_hook]]
+address = 0x82300F2C
+name = "StuntmanDrawWithoutDeclaration"
+registers = ["r22"]
+jump_address_on_true = 0x82301138

@@ -57,6 +57,71 @@ of the port. Newest first within each section.
   helpers wrote the cached MXCSR copy back whole; a context whose copy was
   never loaded holds 0, which unmasks every host FP exception. Fixed in
   `patches/sdk/0002-fpscr-keep-host-exception-masks.patch` by starting from the live MXCSR.
+- Crash in the pause menu and when a scene restarts (first seen 2026-10-18,
+  reproduced 2026-10-24 restarting scenes at 60 FPS): null read at
+  `0x82300F9C` in `sub_82300CE8` (D3D `DrawVertices`), device field `+12428`
+  (vertex declaration, set by `sub_822633B8`) was NULL. The 2D/UI renderer
+  (`0x8282xxxx`-`0x8283xxxx`) caches the current declaration in `0x82C6D780`
+  and the vertex shader in `0x82C6D77C`, and skips the D3D setter when the
+  cache matches; full state resets (`sub_82838168`, `sub_8225FBD8`) null the
+  device without touching the cache. A midasm hook at `0x82300F2C`
+  (`src/game_fixes.cpp`) skips that draw and empties the cache; it logs
+  "DrawVertices without a vertex declaration" once when it fires.
+
+## Performance
+
+Measured with the benchmark harness (below) on a Ryzen 7 9800X3D + RX 9070 XT,
+first career scene, 2026-10-24.
+
+- The bottleneck is the GPU command processor thread ("GPU Commands", Xenos
+  emulation, single-threaded). The game's render threads spin in
+  `sub_8225F780` / `sub_82268BB8` (D3D waiting for the ring buffer read
+  pointer) while it works. Its uncapped rate at 720p went from 83 to ~105 FPS
+  with `patches/sdk/0004-gpu-command-processor-and-timing.patch`:
+  - `CommandProcessor::WriteRegister` looked every register up in
+    `RegisterFile::GetRegisterInfo` (a huge switch with static locals) just
+    for a debug log: ~29% of the thread with the type-0 path below. Now only
+    when debug logging is on; type-0 packets of consecutive registers go
+    through `WriteRegisterRangeFromRing`, which writes shader constant blocks
+    at once.
+  - `SharedMemory::RequestRanges` allocated a vector per call (~6%).
+  - `rex::thread::Sleep` used `::Sleep(ms)`, which rounds up to the system
+    timer resolution; now a high-resolution waitable timer. The vblank thread
+    sleeps until the next vblank is due instead of polling every ms.
+- Frame pacing was the visible problem: at 60 FPS ~20% of frames took more
+  than 17.5 ms in pairs of ~24 + ~9 ms. A swap waits for its vblank, so a
+  frame that misses one by a little is shown a full refresh late. Fix:
+  `frame_limiter` (default on, menu "Frame pacing: Smooth") runs the emulated
+  vblank freely (SDK cvar `vsync` off, set by `SyncFramePacing`) and paces the
+  render thread with a high-resolution timer in the swap hook. Result: 100%
+  of frames 15-17.5 ms, 1% low 59.8 FPS (was 32). Game speed checked against
+  the race timer. The old `V-SYNC` menu row was really this vblank switch
+  (off = uncapped game) and is gone.
+- Left: `VirtualProtect` is ~22% of the GPU thread (`SharedMemory::
+  MakeRangeValid` re-protecting streamed vertex pages after each upload, plus
+  the guest's access violations on the next write). Tried and dropped, both
+  slower: never protecting pages the CPU rewrites often (re-uploading them on
+  every draw made the GPU wait on fences, 33 FPS), and uploading ahead into
+  the invalid pages after a request (more page faults and copies, 83 vs 102).
+  AMD driver time is ~8%.
+- Supersampling (`resolution_scale`) is GPU-bound: at 2560x1440 1x and 2x
+  hold 60, 3x (7680x4320 inside) gives ~42 with either render target path.
+- The shader storage already works like a precompile: 176 shaders and ~240
+  pipelines load from `store_shaders` in ~50 ms at boot; only new ones compile
+  in game (asynchronously).
+- The installer's preset builds the SDK without Tracy and perf counters.
+
+### Benchmark harness
+
+`src/bench.cpp`, driven by environment variables (never touches the desktop's
+input). `tools/bench.ps1 -Name <run> [-Args ...] [-Profile] [-Width/-Height]`
+boots straight into the first career scene with scripted pad input (holds the
+throttle, A restarts the scene when it fails), records 45 s of frame times
+and optionally samples every thread's stack at 1 kHz (x64 unwind data).
+`tools/frames_report.py` summarises frames, `tools/profile_report.py`
+symbolises the profile (stuntman.pdb and the SDK's PDBs; `--callers NAME`
+shows call stacks). Screenshots: a "shot" step uses `PrintWindow`, also on the
+start screen with `STUNTMAN_MENU_PAGE`.
 
 ## Debugging a crash
 
@@ -165,15 +230,6 @@ It names the `sub_XXXXXXXX` and the line in `generated/default/*.cpp`; the
       prints a function's PowerPC listing with addresses.
 
 ## Open issues
-
-- Crash once after ~30 s in the pause menu (2026-10-18), not reproduced in a
-  later session. Null read in `sub_82300CE8` (D3D `DrawVertices`): device
-  field `+12428` (vertex declaration, set by `sub_822633B8`) was NULL. The
-  2D/UI renderer (`0x8282xxxx`-`0x8283xxxx`) caches the current declaration in
-  `0x82C6D780` and the vertex shader in `0x82C6D77C`, and skips the D3D setter
-  when the cache matches; full state resets (`sub_82838168`, `sub_8225FBD8`)
-  null the device without touching the cache. Crashed on a guest thread that
-  logged nothing before.
 
 - `d:\keyboard.ini` is opened and missing (dev leftover in the game).
 - Xenia lists `XInputdFF*` (force feedback wheel) imports as unimplemented.

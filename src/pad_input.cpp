@@ -2,6 +2,8 @@
 
 #include "pad_input.h"
 
+#include "bench.h"
+
 #include <rex/cvar.h>
 #include <rex/input/input.h>
 #include <rex/input/input_system.h>
@@ -211,6 +213,7 @@ void Filter(const DeviceInfo& device, X_INPUT_STATE& state) {
     return;
   }
   if (!device.synthetic && !g_identity.load(std::memory_order_relaxed)) Remap(state);
+  bench::Inject(state);
 }
 
 int ParseTarget(std::string_view token, int fallback) {

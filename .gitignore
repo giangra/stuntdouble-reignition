@@ -40,3 +40,6 @@ __pycache__/
 Thumbs.db
 Desktop.ini
 .DS_Store
+
+# Benchmark results (tools/bench.ps1)
+bench/

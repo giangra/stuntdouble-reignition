@@ -103,8 +103,13 @@
         {
             "name": "win-amd64-relwithdebinfo",
             "displayName": "Windows AMD64 RelWithDebInfo",
+            "description": "What the installer builds: optimized, with symbols for crash reports, without the SDK's profiler hooks",
             "inherits": "windows-base",
-            "cacheVariables": { "CMAKE_BUILD_TYPE": "RelWithDebInfo" }
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+                "REXGLUE_ENABLE_TRACY": "OFF",
+                "REXGLUE_ENABLE_PERF_COUNTERS": "OFF"
+            }
         },
         {
             "name": "linux-amd64-relwithdebinfo",

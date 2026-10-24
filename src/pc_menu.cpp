@@ -564,18 +564,24 @@ void PcMenu::BuildPages() {
     fps.choices = {{tr("30 FPS (ORIGINAL)", "30 FPS (ORIGINALE)"), "30"}, {"60 FPS", "60"}};
     p.rows.push_back(std::move(fps));
 
-    Row vsync{Row::Kind::kChoice, "V-SYNC",
-              tr("Syncs frames to the monitor to avoid tearing.",
-                 "Sincronizza i fotogrammi con il monitor per evitare lo strappo dell'immagine.")};
-    vsync.cvar = "vsync";
-    vsync.choices = on_off();
-    p.rows.push_back(std::move(vsync));
+    Row pacing{Row::Kind::kChoice, tr("FRAME PACING", "CADENZA FOTOGRAMMI"),
+               tr("Smooth times every frame with a precise PC timer, so one that runs a little "
+                  "long doesn't wait for the next refresh. Console waits for the refresh like "
+                  "the Xbox 360, which stutters when a frame is late.",
+                  "Fluida temporizza ogni fotogramma con un timer preciso del PC, così uno che "
+                  "dura un po' di più non aspetta il refresh successivo. Console aspetta il "
+                  "refresh come l'Xbox 360 e scatta quando un fotogramma è in ritardo.")};
+    pacing.cvar = "frame_limiter";
+    pacing.choices = {{tr("SMOOTH", "FLUIDA"), "true"}, {"CONSOLE", "false"}};
+    p.rows.push_back(std::move(pacing));
 
     Row scale{Row::Kind::kChoice, "SUPERSAMPLING",
               tr("Draws the game at 2 or 3 times the resolution, for a sharper picture. Needs a "
-                 "faster graphics card. Applies after a restart.",
+                 "faster graphics card: from 1440p up, 3X is too heavy for 60 FPS even on high-end "
+                 "cards. Applies after a restart.",
                  "Disegna il gioco a 2 o 3 volte la risoluzione, per un'immagine più nitida. "
-                 "Serve una scheda video più potente. Si applica al riavvio.")};
+                 "Serve una scheda video più potente: da 1440p in su il 3X è troppo pesante per i "
+                 "60 FPS anche sulle schede di fascia alta. Si applica al riavvio.")};
     scale.cvar = "resolution_scale";
     scale.choices = {{"OFF", "1"}, {"2X", "2"}, {"3X", "3"}};
     p.rows.push_back(std::move(scale));

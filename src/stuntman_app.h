@@ -14,7 +14,9 @@
 #include <cstdlib>
 #include <filesystem>
 
+#include "bench.h"
 #include "fps_overlay.h"
+#include "frame_rate.h"
 #include "pad_input.h"
 #include "pc_menu.h"
 #include "ui_theme.h"
@@ -30,7 +32,10 @@ class StuntmanApp : public rex::ReXApp {
   }
 
   // The config is loaded by now; the window doesn't exist yet.
-  void OnPostInitLogging() override { PcMenu::ApplyFirstRunDefaults(); }
+  void OnPostInitLogging() override {
+    PcMenu::ApplyFirstRunDefaults();
+    SyncFramePacing();
+  }
 
   void OnPreSetup(rex::RuntimeConfig& config) override {
     // Xenos GPU emulation (D3D12 on Windows) from the rexgpu-xenos plugin
@@ -65,7 +70,8 @@ class StuntmanApp : public rex::ReXApp {
 
   // With the start screen on, the game is launched only when Play is chosen.
   void LaunchModule() override {
-    if (launched_ || rex::cvar::GetFlagByName("start_screen") != "true" || !imgui_drawer()) {
+    if (launched_ || rex::cvar::GetFlagByName("start_screen") != "true" || !imgui_drawer() ||
+        (std::getenv("STUNTMAN_BENCH") && !std::getenv("STUNTMAN_MENU_PAGE"))) {
       Launch();
       return;
     }
@@ -77,7 +83,10 @@ class StuntmanApp : public rex::ReXApp {
     menu_ = new PcMenu(imgui_drawer(), PcMenu::Mode::kStart, config_path_, runtime(),
                        immediate_drawer(), std::move(hooks));
     // For screenshots of the menu pages: STUNTMAN_MENU_PAGE=video, keyboard...
-    if (const char* page = std::getenv("STUNTMAN_MENU_PAGE")) menu_->OpenPage(page);
+    if (const char* page = std::getenv("STUNTMAN_MENU_PAGE")) {
+      menu_->OpenPage(page);
+      bench::Start();  // its "shot" steps capture the page
+    }
   }
 
   void OnShutdown() override {
@@ -105,6 +114,7 @@ class StuntmanApp : public rex::ReXApp {
     if (launched_) return;
     launched_ = true;
     PcMenu::CaptureLanguage();
+    bench::Start();
     rex::ReXApp::LaunchModule();
   }
 

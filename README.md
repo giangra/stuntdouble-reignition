@@ -30,6 +30,16 @@ game's code to C++ and compiles it. Count about 12 GB of free space and
 30–60 minutes the first time. If it stops, run it again: finished steps are
 kept. Its log is `install.log` in the install folder.
 
+### Updating
+
+From 0.3.0 on, the launcher checks GitHub for a newer release when it starts
+and shows an **Update to x.y.z** button. It downloads the new setup (checking
+its SHA-256 and version), which rebuilds the game at the new version from the
+game files already extracted in the install folder: no ISO needed, about
+10–20 minutes. Saves, achievements and `stuntman.toml` are kept. From 0.2.x
+or earlier, download the new setup by hand once and install over the same
+folder.
+
 ## Requirements (building by hand)
 
 - Windows 10/11 x64
@@ -77,7 +87,7 @@ is saved at once to `stuntman.toml` next to the game.
 
 - **Video:** fullscreen or windowed, resolution including ultrawide (21:9,
   32:9) and 16:10, black bars or stretch on screens that aren't 16:9 (a true
-  ultrawide view needs a game patch, not done yet), 30 or 60 FPS, V-Sync,
+  ultrawide view needs a game patch, not done yet), 30 or 60 FPS, frame pacing,
   supersampling, texture filtering, an FPS counter (also F2).
 - **Controls:** keyboard on or off, two keys per action, and a controller
   layout that swaps buttons. The menus always use the normal layout, so a bad

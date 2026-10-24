@@ -18,6 +18,8 @@ include(generated/rexglue.cmake)
 # Sources
 set(STUNTMAN_SOURCES
     src/main.cpp
+    src/bench.cpp
+    src/game_fixes.cpp
     src/frame_rate.cpp
     src/fps_overlay.cpp
     src/pad_input.cpp
